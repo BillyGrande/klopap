@@ -22,7 +22,7 @@ class LtrTransactionHandler(TransactionHandler):
         ltr_payload = LotteryPayload.from_bytes(transaction.payload)
         ltr_state = LotteryState(context)
 
-        if ltr_payload.action == "create":
+        if ltr_payload.action == "play":
             #...
             if ltr_state.get_lottery(ltr_payload) is not None:
                 raise InvalidTransaction(
