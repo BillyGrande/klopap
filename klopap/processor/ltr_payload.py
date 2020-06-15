@@ -5,7 +5,7 @@ class LtrPayload:
 	def __init__(self, payload):
 
 		if not action:
-        	raise InvalidTransaction('Action is required')
+			raise InvalidTransaction('Action is required')
 
 		if action not in ("play","validate"):
 			raise InvalidTransaction('Invalid action: {}'.format(action))
