@@ -19,6 +19,7 @@ class Lottery:
         if ltr_id is None:
             self.id = next(Lottery.id_iter)
         else:
+            next(Lottery.id_iter)
             self.id = ltr_id
 
         self.numbers = numbers
@@ -45,7 +46,7 @@ class LtrState:
         else:
             self._delete_lottery(ltr_id)
 
-        def set_lottery(self, ltr_id):
+        def set_lottery(self, ltr_id, lottery):
             # later
             lotteries = self._load_lotteries(ltr_id=ltr_id)
 
@@ -108,7 +109,7 @@ class LtrState:
                 for lottery in data.decode().split("|"):
                     ltr_id, nums, player = lottery.split(",")
 
-                    lotteries[ltr_id] = Lottery(ltr_id, list(map(int, nums.split('-'))), player)
+                    lotteries[ltr_id] = Lottery(list(map(int, nums.split('-'))), player, ltr_id)
             except ValueError:
                 raise InternalError("Failed to deserialize game data")
 
