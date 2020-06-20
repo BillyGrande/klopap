@@ -3,9 +3,8 @@ import base64
 from base64 import b64encode
 import time
 import random
-import requests
-import yaml
-import urllib
+import urllib.request
+from urllib.error import HTTPError
 
 
 from klopap.processor.randomID import RandomId
@@ -49,16 +48,6 @@ class LtrClient:
             auth_user=auth_user,
             auth_password=auth_password)
 
-    def _get_status(self, batch_id, wait, auth_user=None, auth_password=None):
-        try:
-            result = self._send_request(
-                'batch_statuses?id={}&wait={}'.format(batch_id, wait),
-                auth_user=auth_user,
-                auth_password=auth_password)
-            return yaml.safe_load(result)['data'][0]['status']
-        except BaseException as err:
-            raise Exception(err)
-
     def _get_prefix(self):
         return _sha512('ltr'.encode('utf-8'))[0:6]
 
@@ -67,49 +56,17 @@ class LtrClient:
         game_address = _sha512(name.encode('utf-8'))[0:64]
         return ltr_prefix + game_address
 
-    def _send_request(self,
-                      suffix,
-                      data=None,
-                      content_type=None,
-                      name=None,
-                      auth_user=None,
-                      auth_password=None):
-        if self._base_url.startswith("http://"):
-            url = "{}/{}".format(self._base_url, suffix)
-        else:
-            url = "http://{}/{}".format(self._base_url, suffix)
-
-        headers = {}
-        if auth_user is not None:
-            auth_string = "{}:{}".format(auth_user, auth_password)
-            b64_string = b64encode(auth_string.encode()).decode()
-            auth_header = 'Basic {}'.format(b64_string)
-            headers['Authorization'] = auth_header
-
-        if content_type is not None:
-            headers['Content-Type'] = content_type
-
+    def _send_urequest(self, batc_list_bytes):
         try:
-            if data is not None:
-                result = requests.post(url, headers=headers, data=data)
-            else:
-                result = requests.get(url, headers=headers)
+            request = urllib.request.Request(
+                'http://rest.api.domain/batches',
+                batc_list_bytes,
+                method='POST',
+                headers={'Content-Type': 'application/octet-stream'})
+            response = urllib.request.urlopen(request)
 
-            if result.status_code == 404:
-                raise Exception("No such game: {}".format(name))
-
-            if not result.ok:
-                raise Exception("Error {}: {}".format(
-                    result.status_code, result.reason))
-
-        except requests.ConnectionError as err:
-            raise Exception(
-                'Failed to connect to {}: {}'.format(url, str(err)))
-
-        except BaseException as err:
-            raise BaseException(err)
-
-        return result.text
+        except HTTPError as e:
+            response = e
 
     def _send_ltr_txn(self,
                     ltr_id,
@@ -148,32 +105,7 @@ class LtrClient:
         batch_list = self._create_batch_list([transaction])
         batch_id = batch_list.batches[0].header_signature
 
-        if wait and wait > 0:
-            wait_time = 0
-            start_time = time.time()
-            response = self._send_request(
-                "batches", batch_list.SerializeToString(),
-                'application/octet-stream',
-                auth_user=auth_user,
-                auth_password=auth_password)
-            while wait_time < wait:
-                status = self._get_status(
-                    batch_id,
-                    wait - int(wait_time),
-                    auth_user=auth_user,
-                    auth_password=auth_password)
-                wait_time = time.time() - start_time
-
-                if status != 'PENDING':
-                    return response
-
-            return response
-
-        return self._send_request(
-            "batches", batch_list.SerializeToString(),
-            'application/octet-stream',
-            auth_user=auth_user,
-            auth_password=auth_password)
+        return self._send_urequest(batch_list.SerializeToString())
 
     def _create_batch_list(self, transactions):
         transaction_signatures = [t.header_signature for t in transactions]
