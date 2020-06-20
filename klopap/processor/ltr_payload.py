@@ -28,24 +28,24 @@ class LtrPayload:
 			try:
 				ltr_id = int(ltr_id)
 			except ValueError:
-				raise InvalidTransaction("id must be an integer")
+				raise InvalidTransaction("id is invalid")
 
 		self._action = action
 		self._ltr_id = ltr_id
 		self._numbers = numbers
 
-		@staticmethod
-		def from_bytes(payload):
-			return LtrPayload(payload=payload)
+	@staticmethod
+	def from_bytes(payload):
+		return LtrPayload(payload=payload)
 
-		@property
-		def action(self):
-			return self._action
+	@property
+	def action(self):
+		return self._action
 
-		@property
-		def ltr_id(self):
-			return self._ltr_id
+	@property
+	def ltr_id(self):
+		return self._ltr_id
 
-		@property
-		def numbers(self):
-			return self._numbers
+	@property
+	def numbers(self):
+		return list(map(int, self._numbers.join(" ")))

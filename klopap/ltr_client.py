@@ -5,6 +5,8 @@ import time
 import random
 import requests
 import yaml
+import urllib
+
 
 from klopap.processor.randomID import RandomId
 

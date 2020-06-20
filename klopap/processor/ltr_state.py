@@ -1,7 +1,6 @@
 import hashlib
-import itertools
 import random
-import sys
+from klopap.processor.randomID import RandomId
 from sawtooth_sdk.processor.exceptions import InternalError
 
 LTR_NAMESPACE = hashlib.sha512('ltr'.encode("utf-8")).hexdigest()[0:6]
@@ -13,29 +12,25 @@ def _make_ltr_address(id):
 
 
 class Lottery:
-    id_iter = itertools.count()
     _winning_numbers = random.sample(range(51), 5).sort()
 
     def __init__(self, ltr_id, numbers, player):
-        if ltr_id is None:
-            self.id = next(Lottery.id_iter)
-        else:
-            next(Lottery.id_iter)
-            self.id = ltr_id
-
+        self.ltr_id = ltr_id
         self.numbers = numbers
         self.player = player
 
     @classmethod
     def new(cls, player):
+        ltr_id = RandomId.get_id()
         numbers = random.sample(range(51), 5)
-        return Lottery(numbers, player)
+        return Lottery(ltr_id, numbers, player)
 
     def validate(self):
         result = "Your numbers are different sorry!"
         if sorted(self.numbers) == Lottery._winning_numbers:
             result = "You win!"
         return result
+
 
 class LtrState:
     TIMEOUT = 3
