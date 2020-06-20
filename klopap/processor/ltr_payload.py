@@ -1,4 +1,4 @@
-import random
+
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 

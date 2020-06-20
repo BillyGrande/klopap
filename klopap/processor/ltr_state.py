@@ -14,9 +14,9 @@ def _make_ltr_address(id):
 
 class Lottery:
     id_iter = itertools.count()
-    winning_numbers = random.sample(range(51), 5).sort()
+    _winning_numbers = random.sample(range(51), 5).sort()
 
-    def __init__(self, numbers, player, ltr_id=None):
+    def __init__(self, ltr_id, numbers, player):
         if ltr_id is None:
             self.id = next(Lottery.id_iter)
         else:
@@ -33,7 +33,7 @@ class Lottery:
 
     def validate(self):
         result = "Your numbers are different sorry!"
-        if sorted(self.numbers) == Lottery.winning_numbers:
+        if sorted(self.numbers) == Lottery._winning_numbers:
             result = "You win!"
         return result
 
