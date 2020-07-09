@@ -1,14 +1,14 @@
 import hashlib
 import random
-from klopap.processor.randomID import RandomId
+from randomID import RandomId
 from sawtooth_sdk.processor.exceptions import InternalError
 
 LTR_NAMESPACE = hashlib.sha512('ltr'.encode("utf-8")).hexdigest()[0:6]
 
 
-def _make_ltr_address(id):
+def _make_ltr_address(ltr_id):
     return LTR_NAMESPACE + \
-           hashlib.sha512(id.encode('utf-8')).hexdigest()[:64]
+           hashlib.sha512(ltr_id.encode('utf-8')).hexdigest()[:64]
 
 
 class Lottery:
@@ -22,6 +22,11 @@ class Lottery:
     @classmethod
     def new(cls, player):
         ltr_id = RandomId.get_id()
+        numbers = random.sample(range(51), 5)
+        return Lottery(ltr_id, numbers, player)
+
+    @classmethod
+    def new(cls, ltr_id, player):
         numbers = random.sample(range(51), 5)
         return Lottery(ltr_id, numbers, player)
 
@@ -110,7 +115,7 @@ class LtrState:
             for lottery in data.decode().split("|"):
                 ltr_id, nums, player = lottery.split(",")
 
-                lotteries[ltr_id] = Lottery(list(map(int, nums.split(' '))), player, ltr_id)
+                lotteries[ltr_id] = Lottery(ltr_id, list(map(int, nums.split(' '))), player)
         except ValueError:
             raise InternalError("Failed to deserialize game data")
 

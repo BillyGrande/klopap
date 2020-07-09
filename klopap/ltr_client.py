@@ -7,8 +7,6 @@ import urllib.request
 from urllib.error import HTTPError
 
 
-from klopap.processor.randomID import RandomId
-
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 from sawtooth_signing import ParseError
@@ -23,6 +21,7 @@ from sawtooth_sdk.protobuf.batch_pb2 import Batch
 
 def _sha512(data):
     return hashlib.sha512(data).hexdigest()
+
 
 class LtrClient:
 
@@ -40,10 +39,11 @@ class LtrClient:
             auth_user=auth_user,
             auth_password=auth_password)
 
-    def validate(self, ltr_id, wait=None, auth_user=None, auth_password=None):
+    def validate(self, ltr_id, numbers=None, wait=None, auth_user=None, auth_password=None):
         return self._send_ltr_txn(
             ltr_id,
             "delete",
+            numbers=numbers,
             wait=wait,
             auth_user=auth_user,
             auth_password=auth_password)
@@ -77,7 +77,7 @@ class LtrClient:
                     auth_password = None):
         # Serialization is just a delimited utf-8 encoded string
         self._player = self._signer.get_public_key().as_hex()
-        payload = ",".join([str(self._player), action,' '.join(sorted(numbers))]).encode()
+        payload = ",".join([str(self._player), action, ' '.join(sorted(numbers))]).encode()
 
         # Construct the address
         address = self._get_address(ltr_id)

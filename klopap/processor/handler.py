@@ -1,13 +1,12 @@
-import logging
 
 from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.exceptions import InternalError
 
-from klopap.processor.ltr_payload import LtrPayload
-from klopap.processor.ltr_state import Lottery
-from klopap.processor.ltr_state import LtrState
-from klopap.processor.ltr_state import LTR_NAMESPACE
+from ltr_payload import LtrPayload
+from ltr_state import Lottery
+from ltr_state import LtrState
+from ltr_state import LTR_NAMESPACE
 
 
 class LtrTransactionHandler(TransactionHandler):
@@ -36,12 +35,12 @@ class LtrTransactionHandler(TransactionHandler):
 
         if ltr_payload.action == "play":
             # ...
-            if ltr_state.get_lottery(ltr_payload) is not None:
+            if ltr_state.get_lottery(ltr_payload.ltr_id) is not None:
                 raise InvalidTransaction(
                     'Invalid action: You have already play: {}'.format(
                         ltr_payload.numbers))
 
-            lottery = Lottery().new(signer)
+            lottery = Lottery().new(ltr_payload.ltr_id, signer)
             ltr_state.set_lottery(lottery.id, lottery)
             _display("Player {} created a lottery.".format(signer[:6]))
 

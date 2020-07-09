@@ -1,5 +1,5 @@
 from sawtooth_sdk.processor.core import TransactionProcessor
-from klopap.processor.handler import LtrTransactionHandler
+from handler import LtrTransactionHandler
 
 
 def main():

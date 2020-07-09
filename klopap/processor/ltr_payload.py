@@ -26,7 +26,7 @@ class LtrPayload:
 
 		if action == "validate":
 			try:
-				ltr_id = int(ltr_id)
+				ltr_id = ltr_id
 			except ValueError:
 				raise InvalidTransaction("id is invalid")
 
