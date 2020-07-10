@@ -10,6 +10,7 @@ import urllib.request
 from urllib.error import HTTPError
 import hashlib
 from sawtooth_sdk.protobuf.batch_pb2 import BatchList
+import subprocess
 
 
 class User:
@@ -63,8 +64,8 @@ class Client:
 
         address = self._get_address(payload.get_name())
 
-        print(address)
-        print(self.user.signer.get_public_key().as_hex())
+        #print(address)
+        #print(self.user.signer.get_public_key().as_hex())
         txn_header_bytes = TransactionHeader(
             family_name='intkey',
             family_version='1.0',
@@ -77,6 +78,7 @@ class Client:
         ).SerializeToString()
 
         signature = self.user.signer.sign(txn_header_bytes)
+        url = "http://sawtooth-rest-api-default-0:8008/batch_statuses?id=" + signature
 
         txn = Transaction(
             header=txn_header_bytes,
@@ -85,7 +87,7 @@ class Client:
         )
 
         batch_list = self._batch(txn).SerializeToString()
-        return self._submit(batch_list)
+        return self._submit(batch_list, url)
 
     def _batch(self, txn):
 
@@ -105,7 +107,7 @@ class Client:
         )
         return BatchList(batches=[batch])
 
-    def _submit(self, batch_list_bytes):
+    def _submit(self, batch_list_bytes, url):
 
         try:
             request = urllib.request.Request(
@@ -114,6 +116,7 @@ class Client:
                 method='POST',
                 headers={'Content-Type': 'application/octet-stream'})
             response = urllib.request.urlopen(request)
+            self._batch_status(url)
 
         except HTTPError as e:
             response = e
@@ -126,3 +129,8 @@ class Client:
     def _get_address(self, name):
         address = hashlib.sha512('intkey'.encode('utf-8')).hexdigest()[0:6] + hashlib.sha512(name.encode('utf-8')).hexdigest()[-64:]
         return address
+
+    def _batch_status(self, url):
+        subprocess.call(["curl", url])
+
+
