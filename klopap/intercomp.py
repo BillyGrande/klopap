@@ -45,8 +45,9 @@ class Payload:
 
 class Client:
 
-    def __init__(self, user):
+    def __init__(self, user, url=None):
         self.user = user
+        self._url = ""
 
     def create(self, name, value):
         payload = Payload('set', name, value)
@@ -78,7 +79,6 @@ class Client:
         ).SerializeToString()
 
         signature = self.user.signer.sign(txn_header_bytes)
-        url = "http://sawtooth-rest-api-default-0:8008/batch_statuses?id=" + signature
 
         txn = Transaction(
             header=txn_header_bytes,
@@ -87,7 +87,7 @@ class Client:
         )
 
         batch_list = self._batch(txn).SerializeToString()
-        return self._submit(batch_list, url)
+        return self._submit(batch_list, self._url)
 
     def _batch(self, txn):
 
@@ -99,6 +99,7 @@ class Client:
         ).SerializeToString()
 
         signature = self.user.signer.sign(batch_header_bytes)
+        self._url = "http://sawtooth-rest-api-default-0:8008/batch_statuses?id=" + signature
 
         batch = Batch(
             header=batch_header_bytes,
